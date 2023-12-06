@@ -1,0 +1,10 @@
+org $8000
+
+ld a,$30
+ld b,$7
+add a,b
+ld b,a
+rst $10
+ld a,$10
+call $2D1B
+ret

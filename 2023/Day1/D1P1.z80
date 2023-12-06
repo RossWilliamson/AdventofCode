@@ -1,0 +1,100 @@
+org $8000
+  ;ld hl, $9000
+  ld hl, TESTDATA
+
+LOOP
+  ld a, (hl)
+  cp 0
+  jr z, PRINTANS
+  call $2D1B
+  call nc, VALUE
+  cp $0A
+  call z, RESET
+  inc hl
+  jr LOOP
+
+VALUE
+    ld b, a
+    ld a, (NUMBER1)
+    cp 0x98
+    ld a,b
+    jr nz, VALUE2
+    ld (NUMBER1), a
+VALUE2
+    ld (NUMBER2), a
+    ret
+
+RESET
+  ld a, (NUMBER2)
+  sub 0x30
+  ld c,a
+  ld a, (NUMBER1)
+  sub 0x30
+  push hl
+  call $2F8B
+  pop hl
+  ld bc, (SUM)
+  add a, c 
+  ld c, a
+  adc a, b
+  sub a 
+  ld b, a
+  ld (SUM), bc
+  ld a, 0x98
+  ld (NUMBER1), a
+  ret
+
+Num2Dec	
+  ld	bc,-10000
+  call	Num1
+  ld	bc,-1000
+  call	Num1
+  ld	bc,-100
+  call	Num1
+  ld	c,-10
+  call	Num1
+  ld	c,b
+
+Num1	
+  ld	a,'0'-1
+Num2	
+  inc	a
+  add	hl,bc
+  jr	c,Num2
+  sbc	hl,bc
+
+  ld	(de),a
+  inc	de
+  ret
+
+PRINTANS
+  ld hl, (SUM)
+  ld de, ANSWER
+  call Num2Dec
+  ld bc, ANSWER
+  ld a, (bc)
+  cp 0
+  jr z, EXIT
+  rst $10
+  inc bc
+  jr LOOP
+  ret
+
+EXIT
+  ret
+
+NUMBER1
+  db 0x98
+
+NUMBER2
+  db 0x99
+
+SUM
+  db 0x00
+  db 0x00
+
+TESTDATA
+  defb "1abc2", 0x0A, "pqr3stu8vwx", 0x0A, "a1b2c3d4e5f", 0x0A, "treb7uchet", 0x0A, 0x00
+
+ANSWER
+  defb "aaaaa", 0x00
